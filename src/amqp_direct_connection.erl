@@ -23,7 +23,7 @@
 
 -export([server_close/3]).
 
--export([init/1, terminate/2, connect/4, do/2, open_channel_args/1, i/2,
+-export([init/0, terminate/2, connect/4, do/2, open_channel_args/1, i/2,
          info_keys/0, handle_message/2, closing/3, channels_terminated/1]).
 
 -export([socket_adapter_info/2]).
@@ -54,7 +54,7 @@ server_close(ConnectionPid, Code, Text) ->
                                 method_id  = 0},
     amqp_gen_connection:server_close(ConnectionPid, Close).
 
-init([]) ->
+init() ->
     {ok, #state{}}.
 
 open_channel_args(#state{node = Node,
@@ -120,7 +120,7 @@ connect(Params = #amqp_params_direct{username     = Username,
                                      node         = Node,
                                      adapter_info = Info,
                                      virtual_host = VHost},
-        SIF, _ChMgr, State) ->
+        SIF, _TypeSup, State) ->
     State1 = State#state{node         = Node,
                          vhost        = VHost,
                          params       = Params,
@@ -164,7 +164,7 @@ socket_adapter_info(Sock, Protocol) ->
         end,
     Name = case rabbit_net:connection_string(Sock, inbound) of
                {ok, Res1} -> Res1;
-               _          -> unknown
+               _Error     -> "(unknown)"
            end,
     #amqp_adapter_info{protocol        = Protocol,
                        name            = list_to_binary(Name),
