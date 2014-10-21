@@ -1,6 +1,6 @@
 {application,amqp_client,
              [{description,"RabbitMQ AMQP Client"},
-              {vsn,"3.3.5"},
+              {vsn,"3.4.0"},
               {modules,[amqp_auth_mechanisms,amqp_channel,amqp_channel_sup,
                         amqp_channel_sup_sup,amqp_channels_manager,
                         amqp_client,amqp_connection,amqp_connection_sup,
@@ -11,6 +11,6 @@
                         amqp_rpc_server,amqp_selective_consumer,amqp_sup,
                         amqp_uri,rabbit_routing_util,uri_parser]},
               {registered,[amqp_sup]},
-              {env,[{prefer_ipv6,false}]},
+              {env,[{prefer_ipv6,false},{ssl_options,[]}]},
               {mod,{amqp_client,[]}},
               {applications,[kernel,stdlib,xmerl]}]}.
