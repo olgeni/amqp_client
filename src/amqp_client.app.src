@@ -1,6 +1,6 @@
 {application,amqp_client,
              [{description,"RabbitMQ AMQP Client"},
-              {vsn,"3.4.0"},
+              {vsn,"3.4.1"},
               {modules,[amqp_auth_mechanisms,amqp_channel,amqp_channel_sup,
                         amqp_channel_sup_sup,amqp_channels_manager,
                         amqp_client,amqp_connection,amqp_connection_sup,
