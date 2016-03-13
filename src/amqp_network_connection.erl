@@ -151,9 +151,8 @@ do_connect({Addr, Family},
                                         orddict:from_list(SslOpts0)))),
             case ssl:connect(Sock, SslOpts) of
                 {ok, SslSock} ->
-                    RabbitSslSock = #ssl_socket{ssl = SslSock, tcp = Sock},
                     try_handshake(AmqpParams, SIF,
-                                  State#state{sock = RabbitSslSock});
+                                  State#state{sock = SslSock});
                 {error, _} = E ->
                     E
             end;
@@ -323,6 +322,8 @@ handshake_recv(Expecting) ->
                     Method;
                 {'connection.tune', 'connection.close'} ->
                     Method;
+                {'connection.open_ok', 'connection.close'} ->
+                    exit(get_reason(Method));
                 {'connection.open_ok', _} ->
                     {closing,
                      #amqp_error{name        = command_invalid,
@@ -369,3 +370,6 @@ obtain() ->
         false -> ok;
         _     -> file_handle_cache:obtain()
     end.
+
+get_reason(#'connection.close'{reply_code = ErrCode}) ->
+    ?PROTOCOL:amqp_exception(ErrCode).
