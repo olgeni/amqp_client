@@ -11,7 +11,7 @@
 %% The Original Code is RabbitMQ.
 %%
 %% The Initial Developer of the Original Code is GoPivotal, Inc.
-%% Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
+%% Copyright (c) 2007-2017 Pivotal Software, Inc.  All rights reserved.
 %%
 
 %% @private
@@ -78,6 +78,8 @@ handle_message({'DOWN', _MRef, process, _ConnSup, shutdown}, State) ->
     {stop, {shutdown, node_down}, State};
 handle_message({'DOWN', _MRef, process, _ConnSup, Reason}, State) ->
     {stop, {remote_node_down, Reason}, State};
+handle_message({'EXIT', Pid, Reason}, State) ->
+    {stop, rabbit_misc:format("stopping because dependent process ~p died: ~p", [Pid, Reason]), State};
 handle_message(Msg, State) ->
     {stop, {unexpected_msg, Msg}, State}.
 
@@ -212,11 +214,11 @@ ssl_cert_info(Sock) ->
     case rabbit_net:peercert(Sock) of
         {ok, Cert} ->
             [{peer_cert_issuer,   list_to_binary(
-                                    rabbit_ssl:peer_cert_issuer(Cert))},
+                                    rabbit_cert_info:issuer(Cert))},
              {peer_cert_subject,  list_to_binary(
-                                    rabbit_ssl:peer_cert_subject(Cert))},
+                                    rabbit_cert_info:subject(Cert))},
              {peer_cert_validity, list_to_binary(
-                                    rabbit_ssl:peer_cert_validity(Cert))}];
+                                    rabbit_cert_info:validity(Cert))}];
         _ ->
             []
     end.

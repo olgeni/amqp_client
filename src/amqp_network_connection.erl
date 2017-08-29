@@ -11,7 +11,7 @@
 %% The Original Code is RabbitMQ.
 %%
 %% The Initial Developer of the Original Code is GoPivotal, Inc.
-%% Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
+%% Copyright (c) 2007-2017 Pivotal Software, Inc.  All rights reserved.
 %%
 
 %% @private
@@ -73,6 +73,8 @@ handle_message(heartbeat_timeout, State) ->
     {stop, heartbeat_timeout, State};
 handle_message(closing_timeout, State = #state{closing_reason = Reason}) ->
     {stop, Reason, State};
+handle_message({'EXIT', Pid, Reason}, State) ->
+    {stop, rabbit_misc:format("stopping because dependent process ~p died: ~p", [Pid, Reason]), State};
 %% see http://erlang.org/pipermail/erlang-bugs/2012-June/002933.html
 handle_message({Ref, {error, Reason}},
                State = #state{waiting_socket_close = Waiting,
@@ -144,7 +146,7 @@ do_connect({Addr, Family},
                          [Family | ?RABBIT_TCP_OPTS] ++ ExtraOpts,
                          Timeout) of
         {ok, Sock} ->
-            SslOpts = rabbit_networking:fix_ssl_options(
+            SslOpts = rabbit_ssl_options:fix(
                         orddict:to_list(
                           orddict:merge(fun (_, _A, B) -> B end,
                                         orddict:from_list(GlobalSslOpts),
@@ -303,7 +305,7 @@ client_properties(UserProperties) ->
                {<<"version">>,   longstr, list_to_binary(Vsn)},
                {<<"platform">>,  longstr, <<"Erlang">>},
                {<<"copyright">>, longstr,
-                <<"Copyright (c) 2007-2016 Pivotal Software, Inc.">>},
+                <<"Copyright (c) 2007-2017 Pivotal Software, Inc.">>},
                {<<"information">>, longstr,
                 <<"Licensed under the MPL.  "
                   "See http://www.rabbitmq.com/">>},

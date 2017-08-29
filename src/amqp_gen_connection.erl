@@ -11,7 +11,7 @@
 %% The Original Code is RabbitMQ.
 %%
 %% The Initial Developer of the Original Code is GoPivotal, Inc.
-%% Copyright (c) 2007-2016 Pivotal Software, Inc.  All rights reserved.
+%% Copyright (c) 2007-2017 Pivotal Software, Inc.  All rights reserved.
 %%
 
 %% @private
@@ -221,9 +221,18 @@ handle_cast({register_blocked_handler, HandlerPid}, State) ->
 %% @private
 handle_info({'DOWN', _, process, BlockHandler, Reason},
             State = #state{block_handler = {BlockHandler, _Ref}}) ->
-    ?LOG_WARN("Connection (~p): Unregistering block handler ~p because it died. "
+    ?LOG_WARN("Connection (~p): Unregistering connection.{blocked,unblocked} handler ~p because it died. "
               "Reason: ~p~n", [self(), BlockHandler, Reason]),
     {noreply, State#state{block_handler = none}};
+handle_info({'EXIT', BlockHandler, Reason},
+            State = #state{block_handler = {BlockHandler, Ref}}) ->
+    ?LOG_WARN("Connection (~p): Unregistering connection.{blocked,unblocked} handler ~p because it died. "
+              "Reason: ~p~n", [self(), BlockHandler, Reason]),
+    erlang:demonitor(Ref, [flush]),
+    {noreply, State#state{block_handler = none}};
+%% propagate the exit to the module that will stop with a sensible reason logged
+handle_info({'EXIT', _Pid, _Reason} = Info, State) ->
+    callback(handle_message, [Info], State);
 handle_info(Info, State) ->
     callback(handle_message, [Info], State).
 
